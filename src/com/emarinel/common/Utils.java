@@ -42,7 +42,13 @@ public final class Utils {
 		return instance;
 	}
 
+	public DefaultHttpClient getHttpClient() {
+		return this.httpclient;
+	}
+
 	public String getUrlContents(String url) throws IOException, NotLoggedInException {
+		System.out.println(url);
+
 		HttpGet req = new HttpGet(url);
 		HttpResponse response = httpclient.execute(req);
 

@@ -9,11 +9,10 @@ import android.os.AsyncTask;
 public abstract class EugeneAsyncTask<RESULT> extends AsyncTask<Void, Integer, RESULT> {
 
 	private Exception exception;
-	private final Context context;
+	private final Context context; // TODO storing this is dangerous.
 
 	protected abstract RESULT doInBackground() throws Exception;
 	protected abstract void onSuccess(RESULT result);
-	protected abstract void requireLogin(Context context);
 
 	public EugeneAsyncTask(Context context) {
 		ParamUtils.checkNotNull(context, "context");
@@ -23,6 +22,10 @@ public abstract class EugeneAsyncTask<RESULT> extends AsyncTask<Void, Integer, R
 	}
 
 	protected void onFinish() {
+		// Do nothing by default.
+	}
+
+	protected void requireLogin(Context context) {
 		// Do nothing by default.
 	}
 
@@ -45,7 +48,7 @@ public abstract class EugeneAsyncTask<RESULT> extends AsyncTask<Void, Integer, R
 			if (this.exception instanceof NotLoggedInException) {
 				requireLogin(context);
 			} else {
-				Utils.handleConnectionFailure(context);
+				//Utils.handleConnectionFailure(context);
 			}
 		} else {
 			this.onSuccess(result);
