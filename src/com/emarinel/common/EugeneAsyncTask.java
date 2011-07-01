@@ -12,7 +12,6 @@ public abstract class EugeneAsyncTask<RESULT> extends AsyncTask<Void, Integer, R
 	private final Context context; // TODO storing this is dangerous.
 
 	protected abstract RESULT doInBackground() throws Exception;
-	protected abstract void onSuccess(RESULT result);
 
 	public EugeneAsyncTask(Context context) {
 		ParamUtils.checkNotNull(context, "context");
@@ -21,11 +20,19 @@ public abstract class EugeneAsyncTask<RESULT> extends AsyncTask<Void, Integer, R
 		this.context = context;
 	}
 
+	protected void onSuccess(RESULT result) {
+		// Do nothing by default.
+	}
+
 	protected void onFinish() {
 		// Do nothing by default.
 	}
 
 	protected void requireLogin(Context context) {
+		// Do nothing by default.
+	}
+
+	protected void onFailure(Throwable t) {
 		// Do nothing by default.
 	}
 
@@ -43,17 +50,16 @@ public abstract class EugeneAsyncTask<RESULT> extends AsyncTask<Void, Integer, R
 	@Override
 	protected final void onPostExecute(final RESULT result) {
 		if (this.exception != null) {
-			onFinish();
+			onFailure(this.exception);
 
 			if (this.exception instanceof NotLoggedInException) {
 				requireLogin(context);
-			} else {
-				//Utils.handleConnectionFailure(context);
 			}
 		} else {
 			this.onSuccess(result);
-			onFinish();
 		}
+
+		onFinish();
 	}
 
 	protected final Exception getException() {

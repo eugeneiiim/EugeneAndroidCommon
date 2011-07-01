@@ -14,12 +14,23 @@ import java.util.WeakHashMap;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
+import org.apache.http.HttpVersion;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.conn.ClientConnectionManager;
+import org.apache.http.conn.params.ConnManagerPNames;
+import org.apache.http.conn.params.ConnPerRouteBean;
+import org.apache.http.conn.scheme.PlainSocketFactory;
+import org.apache.http.conn.scheme.Scheme;
+import org.apache.http.conn.scheme.SchemeRegistry;
 import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.impl.conn.tsccm.ThreadSafeClientConnManager;
+import org.apache.http.params.BasicHttpParams;
+import org.apache.http.params.HttpParams;
+import org.apache.http.params.HttpProtocolParams;
 
 import android.app.AlertDialog;
 import android.content.Context;
@@ -33,8 +44,90 @@ public final class Utils {
 
 	private final Map<String, Drawable> imageCache;
 
+
+
+
+
+
+
+/*
+
+
+	private static class CustomSSLSocketFactory extends org.apache.http.conn.ssl.SSLSocketFactory
+	{
+	private SSLSocketFactory FACTORY = HttpsURLConnection.getDefaultSSLSocketFactory ();
+
+	public CustomSSLSocketFactory () throws Exception
+	    {
+	    super(null);
+	    try
+	        {
+	        SSLContext context = SSLContext.getInstance ("TLS");
+	        TrustManager[] tm = new TrustManager[] { new X509TrustManager() {
+
+	            @Override
+	            public void checkClientTrusted(
+	                    X509Certificate[] chain,
+	                    String authType) throws CertificateException {
+	                // Oh, I am easy!
+	            }
+
+	            @Override
+	            public void checkServerTrusted(
+	                    X509Certificate[] chain,
+	                    String authType) throws CertificateException {
+	                // Oh, I am easy!
+	            }
+
+	            @Override
+	            public X509Certificate[] getAcceptedIssuers() {
+	                return null;
+	            }
+
+	        }};
+	        context.init (null, tm, new SecureRandom ());
+
+	        FACTORY = context.getSocketFactory();
+	        }
+	    catch (Exception e)
+	        {
+	        e.printStackTrace();
+	        }
+	    }
+
+	@Override
+	public Socket createSocket() throws IOException {
+	    return FACTORY.createSocket();
+	}
+
+	 // TODO: add other methods like createSocket() and getDefaultCipherSuites().
+	 // Hint: they all just make a call to member FACTORY
+	}
+	*/
+
+
 	private Utils() {
-		httpclient = new DefaultHttpClient();
+		// Hack to avoid SSL cert. http://stackoverflow.com/questions/1217141/self-signed-ssl-acceptance-android
+		SchemeRegistry schemeRegistry = new SchemeRegistry();
+		schemeRegistry.register(new Scheme("http", PlainSocketFactory.getSocketFactory(), 80));
+		schemeRegistry.register(new Scheme("https", new EasySSLSocketFactory(), 443));
+		schemeRegistry.register(new Scheme("https", new EasySSLSocketFactory(), 8443));
+
+		HttpParams params = new BasicHttpParams();
+		params.setParameter(ConnManagerPNames.MAX_TOTAL_CONNECTIONS, 30);
+		params.setParameter(ConnManagerPNames.MAX_CONNECTIONS_PER_ROUTE, new ConnPerRouteBean(30));
+		params.setParameter(HttpProtocolParams.USE_EXPECT_CONTINUE, false);
+		HttpProtocolParams.setVersion(params, HttpVersion.HTTP_1_1);
+
+		ClientConnectionManager cm = new ThreadSafeClientConnManager(params, schemeRegistry);
+		httpclient = new DefaultHttpClient(cm, new DefaultHttpClient().getParams());
+
+
+
+
+
+
+
 		this.imageCache = new WeakHashMap<String, Drawable>();
 	}
 
