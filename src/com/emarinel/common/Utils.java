@@ -110,7 +110,7 @@ public final class Utils {
 		// Hack to avoid SSL cert. http://stackoverflow.com/questions/1217141/self-signed-ssl-acceptance-android
 		SchemeRegistry schemeRegistry = new SchemeRegistry();
 		schemeRegistry.register(new Scheme("http", PlainSocketFactory.getSocketFactory(), 80));
-		schemeRegistry.register(new Scheme("https", new EasySSLSocketFactory(), 443));
+		//schemeRegistry.register(new Scheme("https", new EasySSLSocketFactory(), 443));
 		schemeRegistry.register(new Scheme("https", new EasySSLSocketFactory(), 8443));
 
 		HttpParams params = new BasicHttpParams();
@@ -139,32 +139,31 @@ public final class Utils {
 		return this.httpclient;
 	}
 
-	public String getUrlContents(String url) throws IOException, NotLoggedInException {
+	public String getUrlContents(String url) {
 		System.out.println(url);
 
 		HttpGet req = new HttpGet(url);
-		HttpResponse response = httpclient.execute(req);
+		try {
+			HttpResponse response = httpclient.execute(req);
+		    InputStream content = response.getEntity().getContent();
 
-	    InputStream content = response.getEntity().getContent();
-
-	    if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
-	    	BufferedReader buf = new BufferedReader(new InputStreamReader(content));
-		    String r = "";
-		    while (true) {
-		    	String l = buf.readLine();
-		    	if (l == null) {
-		    		break;
-		    	}
-		    	r += l;
+		    if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
+		    	BufferedReader buf = new BufferedReader(new InputStreamReader(content));
+		    	StringBuffer sb = new StringBuffer();
+			    while (true) {
+			    	String l = buf.readLine();
+			    	if (l == null) {
+			    		break;
+			    	}
+			    	sb.append(l);
+			    }
+			    return sb.toString();
+		    } else {
+		    	throw new RuntimeException("Failed to get url: " + url);
 		    }
-		    return r;
-	    } else {
-	    	//throw new RuntimeException("Failed to get url: " + url);
-
-	    	// HACK HACK - we should look at the response to figure out what exception is being thrown, not just assume it's facebook
-	    	// not logged in.
-	    	throw new NotLoggedInException();
-	    }
+		} catch (IOException ex) {
+			throw new RuntimeException("Failed to get url: " + url, ex);
+		}
 	}
 
 	public HttpResponse postToUrl(String url, List<NameValuePair> nameValuePairs) throws ClientProtocolException, IOException {
