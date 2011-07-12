@@ -147,19 +147,22 @@ public final class Utils {
 			HttpResponse response = httpclient.execute(req);
 		    InputStream content = response.getEntity().getContent();
 
+		    BufferedReader buf = new BufferedReader(new InputStreamReader(content));
+	    	StringBuffer sb = new StringBuffer();
+		    while (true) {
+		    	String l = buf.readLine();
+		    	if (l == null) {
+		    		break;
+		    	}
+		    	sb.append(l);
+		    }
+		    String responseString = sb.toString();
+
 		    if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
-		    	BufferedReader buf = new BufferedReader(new InputStreamReader(content));
-		    	StringBuffer sb = new StringBuffer();
-			    while (true) {
-			    	String l = buf.readLine();
-			    	if (l == null) {
-			    		break;
-			    	}
-			    	sb.append(l);
-			    }
-			    return sb.toString();
+		    	return responseString;
 		    } else {
-		    	throw new RuntimeException("Failed to get url: " + url);
+		    	throw new RuntimeException(String.format("Failed to get url: %s. Status code was %d instead of %d. Response was %s.",
+		    		url, response.getStatusLine().getStatusCode(), HttpStatus.SC_OK, responseString));
 		    }
 		} catch (IOException ex) {
 			throw new RuntimeException("Failed to get url: " + url, ex);
