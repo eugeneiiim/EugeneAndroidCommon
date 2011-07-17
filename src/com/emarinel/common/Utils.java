@@ -7,11 +7,13 @@ import java.io.InputStreamReader;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.WeakHashMap;
 
+import org.apache.http.Header;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.HttpVersion;
@@ -122,12 +124,6 @@ public final class Utils {
 		ClientConnectionManager cm = new ThreadSafeClientConnManager(params, schemeRegistry);
 		httpclient = new DefaultHttpClient(cm, new DefaultHttpClient().getParams());
 
-
-
-
-
-
-
 		this.imageCache = new WeakHashMap<String, Drawable>();
 	}
 
@@ -140,9 +136,17 @@ public final class Utils {
 	}
 
 	public String getUrlContents(String url) {
+		return getUrlContents(url, new ArrayList<Header>());
+	}
+
+	public String getUrlContents(String url, List<? extends Header> headers) {
 		System.out.println(url);
 
 		HttpGet req = new HttpGet(url);
+		for (Header header : headers) {
+			req.setHeader(header);
+		}
+
 		try {
 			HttpResponse response = httpclient.execute(req);
 		    InputStream content = response.getEntity().getContent();
