@@ -1,6 +1,6 @@
 package com.emarinel.common;
 
-public final class ParamUtils {
+final class ParamUtils {
 	public static void checkNotNull(Object arg, String name) {
 		if (arg == null) {
 			throw new IllegalArgumentException(name + " must not be null.");
