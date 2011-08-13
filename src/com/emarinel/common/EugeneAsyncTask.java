@@ -1,6 +1,5 @@
 package com.emarinel.common;
 
-import android.content.Context;
 import android.os.AsyncTask;
 
 /**
@@ -9,15 +8,11 @@ import android.os.AsyncTask;
 public abstract class EugeneAsyncTask<RESULT> extends AsyncTask<Void, Integer, RESULT> {
 
 	private Exception exception;
-	private final Context context; // TODO storing this is dangerous.
 
 	protected abstract RESULT doInBackground() throws Exception;
 
-	public EugeneAsyncTask(Context context) {
-		ParamUtils.checkNotNull(context, "context");
-
+	public EugeneAsyncTask() {
 		this.exception = null;
-		this.context = context;
 	}
 
 	protected void onSuccess(RESULT result) {
@@ -25,10 +20,6 @@ public abstract class EugeneAsyncTask<RESULT> extends AsyncTask<Void, Integer, R
 	}
 
 	protected void onFinish() {
-		// Do nothing by default.
-	}
-
-	protected void requireLogin(Context context) {
 		// Do nothing by default.
 	}
 
@@ -50,11 +41,7 @@ public abstract class EugeneAsyncTask<RESULT> extends AsyncTask<Void, Integer, R
 	@Override
 	protected final void onPostExecute(final RESULT result) {
 		if (this.exception != null) {
-			onFailure(this.exception);
-
-			if (this.exception instanceof NotLoggedInException) {
-				requireLogin(context);
-			}
+			this.onFailure(this.exception);
 		} else {
 			this.onSuccess(result);
 		}
